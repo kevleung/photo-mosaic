@@ -7,7 +7,7 @@ Phone screen shot:
 ![alt txt](https://github.com/kevleung/photo-mosaic/raw/master/PhotoMosaic/Screenshot_2013-01-02-23-39-51.png)
 
 The actual mosaic: 
-![alt txt](https://github.com/kevleung/photo-mosaic/raw/master/mosaicRedRoof.jpg)
+![alt txt](https://github.com/kevleung/photo-mosaic/raw/master/PhotoMosaic/mosaicRedRoof.jpg)
 
 -Images used to make the mosaic:  PhotoMosaic / res / drawable-hdpi. These are the art works of the Spanish painter
  Salvador Dali.  All images are name "dali1" through "dali50"
