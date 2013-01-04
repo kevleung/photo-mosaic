@@ -6,6 +6,7 @@ thecakeisalie
  Dimensions: 500x375
 
 -Phone screen shot: Screenshot_2013-01-02-23-39-51.png
+
 -The actual mosaic: mosaicRedRoof.jpg
 
 -Images used to make the mosaic:  PhotoMosaic / res / drawable-hdpi. These are the art works of the Spanish painter
