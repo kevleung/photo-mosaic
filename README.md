@@ -3,7 +3,6 @@ thecakeisalie
 **In the PhotoMosaic folder in the repository
 
 -Original Image: -Red_Roof_Church-20000000001577194-500x375.jpg
- Dimensions: 500x375
 
 -Phone screen shot: Screenshot_2013-01-02-23-39-51.png
 
