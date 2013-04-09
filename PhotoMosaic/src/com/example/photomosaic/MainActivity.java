@@ -24,9 +24,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
+/*
+Photo-Mosaic
+Display a simple interface at launch.  One button that the user uses to select an image from the
+Android Gallery.  Create a mosaic based on the chosen image and save it.  The mosaic is 
+saved into a file locally(on the phone) and inserted into the Android Gallery.
+*/
 public class MainActivity extends Activity {
 	private static int RESULT_LOAD_IMAGE = 1;
 	
+	// Simple interface with just a button and its event listener.
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -46,12 +53,14 @@ public class MainActivity extends Activity {
 	}
 	
 	/**
-	 * Calculate the average colour of the image; find the total RGB values and the
-	 * total number of pixels making up the image to find the colour average.  
+	 * Calculate the Red, Green and Blue pixel values of a given image.
+	 * Get the total value of each of R, G, B and divide each by the
+	 * total number of pixels.
 	 * @param image is a Bitmap object.
 	 * @return ArrayList<R, G, B> with each of R,G,B being Integers.
 	 */
 	private ArrayList<Integer> colorAverage(Bitmap image){
+		// **Note: Use a simple int array instead of ArrayList
 		int width = image.getWidth();
 		int height = image.getHeight();
 		int numPixels = width * height;
@@ -60,34 +69,40 @@ public class MainActivity extends Activity {
 		int blue = 0;
 		
 		int[] pixels = new int[numPixels];
+		// Get all the pixels in the image and iterate over them 
+		// to find their R,G,B values.
 		image.getPixels(pixels, 0, width, 0, 0, width, height);
 		for (int x = 0; x < numPixels; x++){
 			red += Color.red(pixels[x]);
 			green += Color.green(pixels[x]);
 			blue += Color.blue(pixels[x]);
 		}
+
 		ArrayList<Integer> average = new ArrayList<Integer>();
 		average.add(red/numPixels);
 		average.add(green/numPixels);
 		average.add(blue/numPixels);
+		// Return the RGB average of the image.
 		return average;
 	}
 	
 	/**
-	 * Iterate through all the dali images to find their colorAverage and 
-	 * insert into HashMap.
-	 * @return HashMap with an array containing RGB values as key and the corresponding Bitmap as value.
+	 * Iterate over all the dali images to find their colorAverage and 
+	 * insert these averages into a HashMap.
+	 * @return HashMap with an array containing RGB values as key and the corresponding 
+	 * Bitmap as value.
 	 */
 	private HashMap<ArrayList<Integer>, Bitmap> saveImgAvg() {
 		HashMap<ArrayList<Integer>, Bitmap> imgAvg = new HashMap<ArrayList<Integer>, Bitmap>();	
 		int i;
 		//All images in resources folder are named "dali1" up to "dali50".
-		//All images are art works of Salvador Dali, the Spanish painter.
 		Field[] drawables = android.R.drawable.class.getFields();
 		for (i = 0; i < drawables.length; i++) {
 			int res = getResources().getIdentifier("dali" + i , "drawable", getPackageName()); 
 			if (res != 0){
+				// Get the Bitmap object and pass it to the colorAverage() method.
 				Bitmap bitmap = BitmapFactory.decodeResource(getResources(), res);
+				// Put the Bitmap and its associated RGB average into the HashMap.
 				imgAvg.put(colorAverage(bitmap), bitmap);
 			}
 		}
@@ -95,20 +110,22 @@ public class MainActivity extends Activity {
 	}
 	
 	/**
-	 * Divide the given picture into 4 quadrants and add each to the ArrayList.
+	 * Divide the given picture into 4 quadrants and add each of them to the ArrayList.
+	 * Each quadrant is itself a Bitmap object.
 	 * @param picture, a Bitmap object
 	 * @return An array of 4 quadrants
 	 */
-	private ArrayList<Bitmap> divideQuadrants(Bitmap image1){
-		//convert image1 into a mutable bitmap
+	private ArrayList<Bitmap> divideQuadrants(Bitmap picture){
+		// **Note:  Initialize the ArrayList to a length of 4.
 		ArrayList<Bitmap> quadrants = new ArrayList<Bitmap>();
-		int width = image1.getWidth();
-		int height = image1.getHeight();
+		int width = picture.getWidth();
+		int height = picture.getHeight();
 		
-		Bitmap upperLeft = Bitmap.createBitmap(image1, 0, 0, width/2, height/2);
-		Bitmap upperRight = Bitmap.createBitmap(image1, width/2, 0, width/2, height/2);
-		Bitmap lowerLeft = Bitmap.createBitmap(image1, 0, height/2, width/2, height/2);
-		Bitmap lowerRight = Bitmap.createBitmap(image1, width/2, height/2, width/2, height/2);
+		// Get all the quadrants
+		Bitmap upperLeft = Bitmap.createBitmap(picture, 0, 0, width/2, height/2);
+		Bitmap upperRight = Bitmap.createBitmap(picture, width/2, 0, width/2, height/2);
+		Bitmap lowerLeft = Bitmap.createBitmap(picture, 0, height/2, width/2, height/2);
+		Bitmap lowerRight = Bitmap.createBitmap(picture, width/2, height/2, width/2, height/2);
 		
 		quadrants.add(upperLeft);
 		quadrants.add(upperRight);
@@ -119,9 +136,10 @@ public class MainActivity extends Activity {
 	}
 	
 	/**
-	 * Make the mosaic; overlay the closest dali image on the corresponding portion of
-	 * the chosen image which is being transformed into a mosaic recursively. 
-	 * @param orgImg: a Bitmap, the image that was chosen by the user.
+	 * Make the mosaic; recursively divide a copy of the original image into quadrants and overlay
+	 * the matching dali image over the corresponding quadrant.  The cooresponding dali image is 
+	 * the one with the smallest RGB difference between itself and the quadrant.
+	 * @param orgImg: a Bitmap, the original image that was chosen by the user.
 	 * @param dalis: HashMap with key:RGB average of a dali image and value: the associated Bitmap 
 	 * @return the mosaic.
 	 */
@@ -130,9 +148,11 @@ public class MainActivity extends Activity {
     	int orgWidth = orgImg.getWidth();
     	int orgHeight = orgImg.getHeight();
     	
-    	//No need to divide; loop over all color averages of each dali 
-    	//image to find the closest matching image and resize it.
+    	// Base Case
+    	// No need to divide; loop over all color averages of each dali 
+    	// image to find the closest matching image and resize it.
     	if (orgWidth < 10 || orgHeight < 10){
+    		// Find the RGB value of the original image
     		ArrayList<Integer> avgOriginalImage = colorAverage(orgImg);
     		int originalRed = avgOriginalImage.get(0);
     		int originalGreen = avgOriginalImage.get(1);
@@ -141,6 +161,7 @@ public class MainActivity extends Activity {
     		double temp;
     		ArrayList<Integer> matchingKey = new ArrayList<Integer>();
     		
+    		// Find the smallest RGB difference
     		for (ArrayList<Integer> key : dalis.keySet()){
     			temp = Math.sqrt(Math.pow((double)(key.get(0) - originalRed), 2) + 
     					Math.pow((double)(key.get(1) - originalGreen), 2) +
@@ -155,6 +176,7 @@ public class MainActivity extends Activity {
     		return Bitmap.createScaledBitmap(closestImage, orgWidth, orgHeight, false);
     	//The image has to be divided.
     	}else{
+    		// Recursive call 
     		ArrayList<Bitmap> quadrants = divideQuadrants(orgImg);
     		canvas.drawBitmap(makeMosaic(quadrants.get(0), dalis), 0, 0, null);
     		canvas.drawBitmap(makeMosaic(quadrants.get(1), dalis), orgWidth/2, 0, null);
@@ -169,7 +191,7 @@ public class MainActivity extends Activity {
      * createMosaic() calls makeMosaic() to obtain the actual mosaic from the chosen
      * image.  The output to makeMosaic() is a Bitmap which is in turn written to a
      * newly created File.  This is then inserted into the Android gallery. 
-     * @param chosenImage: The Bitmap of the image that the user chose.
+     * @param chosenImage: The Bitmap object of the image that the user chose.
      * @param daliAverages: HashMap with key:RGB average of a dali image and value: the associated Bitmap
      * @param filename: The name of chosenImage.  
      * @return the mosaic.
@@ -186,12 +208,13 @@ public class MainActivity extends Activity {
                 Environment.DIRECTORY_PICTURES);
         File file = new File(path, chosenPath[chosenPath.length - 1]);
         FileOutputStream out = new FileOutputStream(file);
+        // Create a Bitmap object for the mosaic (a new file)
 		mosaic.compress(Bitmap.CompressFormat.PNG, 100, out);
 		
 		// Tell the media scanner about the new file so that it is
 		// immediately available to the user.
-		//This code snippet(line 190-196) was taken from 
-		//http://developer.android.com/reference/android/os/Environment.html
+		// This code snippet(line 190-196) was taken from 
+		// http://developer.android.com/reference/android/os/Environment.html
 		MediaScannerConnection.scanFile(this,
 		        new String[] { file.toString() }, null,
 		        new MediaScannerConnection.OnScanCompletedListener() {
@@ -205,7 +228,8 @@ public class MainActivity extends Activity {
 	
     /**
      * Open the Android gallery and let the user choose an image. A mosaic will be
-     * created based on the chosen image, saved and inserted to the gallery.
+     * created based on the chosen image, saved and inserted to the gallery.  The mosaic 
+     * is also displayed on the screen.
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -223,10 +247,12 @@ public class MainActivity extends Activity {
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
              
-            //Create a mutable Bitmap and display the mosaic to screen.
+            // Create a mutable Bitmap 
             Bitmap originalImage = BitmapFactory.decodeFile(picturePath);
+
             Bitmap originalMutable = originalImage.copy(originalImage.getConfig(), true);
             ImageView imageView = (ImageView) findViewById(R.id.imgView);
+            // Create the mosaic
             try {
 				imageView.setImageBitmap(createMosaic(originalMutable, saveImgAvg(), picturePath));
 			} catch (IOException e) {
