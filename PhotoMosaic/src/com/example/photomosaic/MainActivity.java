@@ -94,14 +94,15 @@ public class MainActivity extends Activity {
 	 */
 	private HashMap<ArrayList<Integer>, Bitmap> saveImgAvg() {
 		HashMap<ArrayList<Integer>, Bitmap> imgAvg = new HashMap<ArrayList<Integer>, Bitmap>();	
-		int i;
+		int i, res;
+		Bitmap bitmap;
 		//All images in resources folder are named "dali1" up to "dali50".
 		Field[] drawables = android.R.drawable.class.getFields();
 		for (i = 0; i < drawables.length; i++) {
-			int res = getResources().getIdentifier("dali" + i , "drawable", getPackageName()); 
+			res = getResources().getIdentifier("dali" + i , "drawable", getPackageName()); 
 			if (res != 0){
 				// Get the Bitmap object and pass it to the colorAverage() method.
-				Bitmap bitmap = BitmapFactory.decodeResource(getResources(), res);
+				bitmap = BitmapFactory.decodeResource(getResources(), res);
 				// Put the Bitmap and its associated RGB average into the HashMap.
 				imgAvg.put(colorAverage(bitmap), bitmap);
 			}
